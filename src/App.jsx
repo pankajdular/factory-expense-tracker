@@ -170,16 +170,10 @@ function App() {
               <h3>Add New Expense</h3>
               <form onSubmit={handleAddExpense} className="form-grid">
                 <input type="date" className="input" value={expDate} onChange={(e) => setExpDate(e.target.value)} required />
+                                <input type="text" className="input" placeholder="Additional notes (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
+                
                 <input 
-                  type="text" 
-                  className="input" 
-                  placeholder="Description/Category (e.g. addition or subtraction) 
-                  value={expCategory} 
-                  onChange={(e) => setExpCategory(e.target.value)} 
-                  required 
-                />
-                <input 
-                  type="number" 
+                  type="number"
                   className="input" 
                   placeholder="Amount (use - for expense, + for cash addition)" 
                   value={expAmount} 
