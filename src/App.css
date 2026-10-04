@@ -150,3 +150,65 @@ body {
   padding: 30px 20px; 
   font-style: italic;
 }
+/* 8. Login Screen Heading */
+.login-heading {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* 8. Login Screen */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+.login-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+.login-heading {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+.login-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+.login-form {
+  display: grid;
+  gap: 16px;
+  text-align: left;
+}
+.login-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: -10px;
+}
+.login-error {
+  background: #fef2f2;
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  font-size: 16px;
+}

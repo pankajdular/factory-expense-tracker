@@ -53,25 +53,52 @@ function App() {
 
   const handleLogout = async () => { await supabase.auth.signOut() }
 
-  // --- LOGIN VIEW ---
+    // --- LOGIN VIEW ---
   if (!session) {
     return (
-      <div className="app-container" style={{ textAlign: 'center', marginTop: '100px' }}>
-        <div className="card">
-             <h2 className="login-heading">Factory Portal</h2>
-          <button className="btn btn-primary" onClick={async () => {
-            const { error } = await supabase.auth.signInWithPassword({
-              email: prompt('Enter Email'), password: prompt('Enter Password'),
-            })
-            if (error) alert(error.message)
+      <div className="login-wrapper">
+        <div className="login-card">
+          <h2 className="login-heading">🏭 Factory Portal</h2>
+          <p className="login-subtitle">Sign in to manage your factory</p>
+          <form className="login-form" onSubmit={async (e) => {
+            e.preventDefault()
+            const formData = new FormData(e.target)
+            const email = formData.get('email')
+            const password = formData.get('password')
+            const { error } = await supabase.auth.signInWithPassword({ email, password })
+            if (error) {
+              const errBox = document.getElementById('login-error')
+if (errBox) {
+  errBox.textContent = error.message
+  errBox.style.display = 'block'
+}
+            }
           }}>
-            Sign In
-          </button>
+            <div id="login-error" className="login-error" style={{ display: 'none' }}></div>
+            <label htmlFor="email">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              className="input"
+              placeholder="manager@factory.com"
+              required
+            />
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              className="input"
+              placeholder="Enter your password"
+              required
+            />
+            <button type="submit" className="btn btn-primary login-btn">Sign In</button>
+          </form>
         </div>
       </div>
     )
   }
-
   // --- DASHBOARD VIEW ---
   return (
     <div className="app-container">
