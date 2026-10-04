@@ -230,8 +230,7 @@ function App() {
               <h3>Add New Expense</h3>
               <form onSubmit={handleAddExpense} className="form-grid">
                 <input type="date" className="input" value={expDate} onChange={(e) => setExpDate(e.target.value)} required />
-                                <input type="text" className="input" placeholder="Additional notes (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
-                
+                                
                 <input 
                   type="number"
                   className="input" 
@@ -241,6 +240,8 @@ function App() {
                   step="0.01" 
                   required 
                 />
+                <input type="text" className="input" placeholder="Additional notes (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
+                
                   <button type="submit" className="btn btn-primary">Save Expense</button>
               </form>
             </div>
