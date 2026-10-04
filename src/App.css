@@ -311,3 +311,35 @@ body {
 .balance-negative {
   color: #fca5a5;
 }
+/* 15. Share/WhatsApp Button */
+.share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 16px;
+  background: #25D366; /* WhatsApp Green */
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.share-btn:hover {
+  background: #1da851;
+  transform: translateY(-1px);
+}
+.share-btn:active {
+  transform: scale(0.98);
+}
+.share-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.share-icon {
+  font-size: 20px;
+}

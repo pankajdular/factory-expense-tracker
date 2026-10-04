@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabaseClient'
+import html2canvas from 'html2canvas'
 import './App.css'
+
 
 function App() {
   const [session, setSession] = useState(null)
   const [view, setView] = useState('expenses')
+  
   
   // Expense States
   const [expenses, setExpenses] = useState([])
@@ -13,12 +16,16 @@ function App() {
   const [expAmount, setExpAmount] = useState('')
   const [expDesc, setExpDesc] = useState('')
   const [showAllExpenses, setShowAllExpenses] = useState(false)
+    
 
   // Inventory States
   const [materials, setMaterials] = useState([])
   const [matName, setMatName] = useState('')
   const [matQty, setMatQty] = useState('')
   const [matCost, setMatCost] = useState('')
+
+  const [isSharing, setIsSharing] = useState(false)
+    const viewRef = useRef(null)
 
     useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -93,6 +100,59 @@ function App() {
       fetchMaterials()
     }
   }
+  const handleShareToWhatsApp = async () => {
+    if (!viewRef.current) return
+    
+    setIsSharing(true)
+    try {
+      // Capture the view as an image
+      const canvas = await html2canvas(viewRef.current, {
+        backgroundColor: '#f3f4f6',
+        scale: 2, // Higher quality
+        useCORS: true,
+      })
+      
+      // Convert to blob
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], `factory-report-${new Date().toISOString().split('T')[0]}.png`, { 
+          type: 'image/png' 
+        })
+        
+        // Try to use the native Share API (works on mobile phones)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Factory Report',
+              text: `Factory Report - ${view === 'expenses' ? 'Daily Expenses' : 'Inventory'} - ${new Date().toLocaleDateString()}`,
+            })
+          } catch (err) {
+            if (err.name !== 'AbortError') {
+              // If user cancels or share fails, download instead
+              downloadImage(canvas)
+            }
+          }
+        } else {
+          // Desktop fallback: download the image
+          downloadImage(canvas)
+          alert('Image downloaded! You can now share it on WhatsApp manually.')
+        }
+        
+        setIsSharing(false)
+      }, 'image/png')
+    } catch (error) {
+      console.error('Error capturing screenshot:', error)
+      alert('Failed to capture screenshot. Please try again.')
+      setIsSharing(false)
+    }
+  }
+
+  const downloadImage = (canvas) => {
+    const link = document.createElement('a')
+    link.download = `factory-report-${new Date().toISOString().split('T')[0]}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }
 
   const handleLogout = async () => { 
     await supabase.auth.signOut() 
@@ -133,7 +193,7 @@ function App() {
 
   // --- DASHBOARD VIEW ---
   return (
-    <div className="app-container">
+        <div className="app-container" ref={viewRef}>
       <header className="app-header">
         <h1>Factory App</h1>
         <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
@@ -221,6 +281,15 @@ function App() {
                 </button>
               )}
             </div>
+                      {/* Share Button */}
+          <button 
+            className="share-btn"
+            onClick={handleShareToWhatsApp}
+            disabled={isSharing}
+          >
+            <span className="share-icon">📱</span>
+            {isSharing ? 'Capturing...' : 'Share to WhatsApp'}
+          </button>
           </div>
         </>
       )}
@@ -266,6 +335,15 @@ function App() {
               {materials.length === 0 && <li className="empty-state">No materials added yet.</li>}
             </ul>
           </div>
+                    {/* Share Button */}
+          <button 
+            className="share-btn"
+            onClick={handleShareToWhatsApp}
+            disabled={isSharing}
+          >
+            <span className="share-icon">📱</span>
+            {isSharing ? 'Capturing...' : 'Share to WhatsApp'}
+          </button>
         </div>
       )}
     </div>
