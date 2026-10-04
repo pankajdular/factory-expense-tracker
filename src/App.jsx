@@ -181,8 +181,7 @@ function App() {
                   step="0.01" 
                   required 
                 />
-                                <input type="text" className="input" placeholder="Additional notes (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
-                                <button type="submit" className="btn btn-primary">Save Expense</button>
+                  <button type="submit" className="btn btn-primary">Save Expense</button>
               </form>
             </div>
             
