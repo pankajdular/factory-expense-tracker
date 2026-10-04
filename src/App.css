@@ -212,3 +212,35 @@ body {
   margin-top: 8px;
   font-size: 16px;
 }
+/* 9. Responsive Expense Layout */
+.expense-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+/* Desktop: Side by side */
+@media (min-width: 768px) {
+  .expense-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* 10. Show More Button */
+.show-more-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  background: var(--bg-body);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.show-more-btn:hover {
+  background: var(--primary);
+  color: white;
+}

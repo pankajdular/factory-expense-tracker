@@ -12,6 +12,7 @@ function App() {
   const [expCategory, setExpCategory] = useState('Labor')
   const [expAmount, setExpAmount] = useState('')
   const [expDesc, setExpDesc] = useState('')
+  const [showAllExpenses, setShowAllExpenses] = useState(false)
 
   // Inventory States
   const [materials, setMaterials] = useState([])
@@ -117,9 +118,10 @@ if (errBox) {
         </button>
       </div>
 
-      {/* EXPENSES VIEW */}
+            {/* EXPENSES VIEW */}
       {view === 'expenses' && (
-        <>
+        <div className="expense-layout">
+          {/* LEFT SIDE: Entry Form */}
           <div className="card">
             <h3>Add New Expense</h3>
             <form onSubmit={handleAddExpense} className="form-grid">
@@ -127,30 +129,41 @@ if (errBox) {
               <select className="select" value={expCategory} onChange={(e) => setExpCategory(e.target.value)}>
                 <option>Labor</option><option>Electricity</option><option>Raw Materials</option><option>Maintenance</option><option>Other</option>
               </select>
-              <input type="number" className="input" placeholder="Amount ($)" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} step="0.01" required />
+              <input type="number" className="input" placeholder="Amount (₹)" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} step="0.01" required />
               <input type="text" className="input" placeholder="Description (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
               <button type="submit" className="btn btn-primary">Save Expense</button>
             </form>
           </div>
           
+          {/* RIGHT SIDE: Recent History */}
           <div className="card">
             <h3>Recent History</h3>
             <ul className="list">
-              {expenses.map((exp) => (
+              {(showAllExpenses ? expenses : expenses.slice(0, 10)).map((exp) => (
                 <li key={exp.id} className="list-item">
                   <div className="list-item-info">
                     <strong>{exp.category}</strong>
                     <small>{exp.description || 'No description'} • {exp.date}</small>
                   </div>
                   <div className="list-item-value text-danger">
-                    ${parseFloat(exp.amount).toFixed(2)}
+                    ₹{parseFloat(exp.amount).toFixed(2)}
                   </div>
                 </li>
               ))}
               {expenses.length === 0 && <li className="empty-state">No expenses recorded yet.</li>}
             </ul>
+            
+            {/* Show More/Less Button */}
+            {expenses.length > 10 && (
+              <button 
+                className="show-more-btn"
+                onClick={() => setShowAllExpenses(!showAllExpenses)}
+              >
+                {showAllExpenses ? 'Show Less' : `Show All (${expenses.length} entries)`}
+              </button>
+            )}
           </div>
-        </>
+        </div>
       )}
 
       {/* INVENTORY VIEW */}
