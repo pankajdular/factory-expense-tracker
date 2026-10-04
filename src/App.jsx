@@ -58,7 +58,7 @@ function App() {
     return (
       <div className="app-container" style={{ textAlign: 'center', marginTop: '100px' }}>
         <div className="card">
-          <h2 style={{ marginBottom: '20px' }}>Factory Portal</h2>
+             <h2 className="login-heading">Factory Portal</h2>
           <button className="btn btn-primary" onClick={async () => {
             const { error } = await supabase.auth.signInWithPassword({
               email: prompt('Enter Email'), password: prompt('Enter Password'),
