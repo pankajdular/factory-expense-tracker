@@ -278,3 +278,36 @@ body {
   display: flex;
   align-items: center;
 }
+/* 14. Money Tracker - Simple Balance Display */
+.balance-summary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: white;
+  padding: 32px 24px;
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.balance-summary h3 {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+.balance-amount {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 8px 0;
+}
+.balance-hint {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-top: 8px;
+}
+.balance-positive {
+  color: #86efac;
+}
+.balance-negative {
+  color: #fca5a5;
+}

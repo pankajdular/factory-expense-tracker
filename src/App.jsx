@@ -20,17 +20,12 @@ function App() {
   const [matQty, setMatQty] = useState('')
   const [matCost, setMatCost] = useState('')
 
-  // Budget States
-  const [totalBudget, setTotalBudget] = useState(0)
-  const [budgetInput, setBudgetInput] = useState('')
-
-  useEffect(() => {
+    useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session) { 
         fetchExpenses()
         fetchMaterials()
-        fetchBudget()
       }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -38,7 +33,6 @@ function App() {
       if (session) { 
         fetchExpenses()
         fetchMaterials()
-        fetchBudget()
       }
     })
     return () => subscription.unsubscribe()
@@ -71,37 +65,9 @@ function App() {
       fetchExpenses()
     }
   }
-
-  // --- BUDGET FUNCTIONS ---
-  const fetchBudget = async () => {
-    const { data } = await supabase.from('budget').select('*').eq('user_id', session.user.id).single()
-    if (data) {
-      setTotalBudget(data.total_budget)
-      setBudgetInput(data.total_budget.toString())
-    }
-  }
-
-  const handleUpdateBudget = async (e) => {
-    e.preventDefault()
-    const newBudget = parseFloat(budgetInput)
-    if (isNaN(newBudget) || newBudget < 0) return alert('Please enter a valid amount')
-    
-    const { data: existing } = await supabase.from('budget').select('*').eq('user_id', session.user.id).single()
-    
-    if (existing) {
-      await supabase.from('budget').update({ total_budget: newBudget }).eq('user_id', session.user.id)
-    } else {
-      await supabase.from('budget').insert([{ user_id: session.user.id, total_budget: newBudget }])
-    }
-    
-    setTotalBudget(newBudget)
-    alert('Budget updated successfully!')
-  }
-
-  const calculateSpent = () => {
+    const calculateBalance = () => {
     return expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0)
   }
-
   // --- INVENTORY FUNCTIONS ---
   const fetchMaterials = async () => {
     const { data } = await supabase.from('materials').select('*').order('created_at', { ascending: false })
@@ -186,34 +152,15 @@ function App() {
       {/* EXPENSES VIEW */}
       {view === 'expenses' && (
         <>
-          {/* Budget Summary */}
-          <div className="budget-summary">
-            <h3>💰 Money Tracker</h3>
-            <div className="budget-grid">
-              <div className="budget-item">
-                <label>Total Budget</label>
-                <div className="amount">₹{parseFloat(totalBudget).toFixed(2)}</div>
-              </div>
-              <div className="budget-item">
-                <label>Total Spent</label>
-                <div className="amount">₹{calculateSpent().toFixed(2)}</div>
-              </div>
-              <div className="budget-item">
-                <label>Remaining</label>
-                <div className="amount">₹{(totalBudget - calculateSpent()).toFixed(2)}</div>
-              </div>
+                    {/* Balance Summary */}
+          <div className="balance-summary">
+            <h3>💰 Remaining Balance</h3>
+            <div className={`balance-amount ${calculateBalance() >= 0 ? 'balance-positive' : 'balance-negative'}`}>
+              ₹{calculateBalance().toFixed(2)}
             </div>
-            <form onSubmit={handleUpdateBudget} className="budget-input-row">
-              <input 
-                type="number" 
-                className="input" 
-                placeholder="Update total budget" 
-                value={budgetInput} 
-                onChange={(e) => setBudgetInput(e.target.value)} 
-                step="0.01"
-              />
-              <button type="submit" className="btn">Update Budget</button>
-            </form>
+            <div className="balance-hint">
+              Enter expenses as negative (-) and cash additions as positive (+)
+            </div>
           </div>
 
           {/* Expense Layout */}
@@ -226,14 +173,22 @@ function App() {
                 <input 
                   type="text" 
                   className="input" 
-                  placeholder="Category (e.g. Labor, Electricity, Transport)" 
+                  placeholder="Description/Category (e.g. addition or subtraction) 
                   value={expCategory} 
                   onChange={(e) => setExpCategory(e.target.value)} 
                   required 
                 />
-                <input type="number" className="input" placeholder="Amount (₹)" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} step="0.01" required />
-                <input type="text" className="input" placeholder="Description (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
-                <button type="submit" className="btn btn-primary">Save Expense</button>
+                <input 
+                  type="number" 
+                  className="input" 
+                  placeholder="Amount (use - for expense, + for cash addition)" 
+                  value={expAmount} 
+                  onChange={(e) => setExpAmount(e.target.value)} 
+                  step="0.01" 
+                  required 
+                />
+                                <input type="text" className="input" placeholder="Additional notes (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
+                                <button type="submit" className="btn btn-primary">Save Expense</button>
               </form>
             </div>
             
