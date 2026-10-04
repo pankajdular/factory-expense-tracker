@@ -1,151 +1,163 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
+import './App.css' // This connects our beautiful new CSS!
 
 function App() {
   const [session, setSession] = useState(null)
-  const [expenses, setExpenses] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [view, setView] = useState('expenses') 
   
-  // Form State
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [category, setCategory] = useState('Labor')
-  const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('')
+  // Expense States
+  const [expenses, setExpenses] = useState([])
+  const [expDate, setExpDate] = useState(new Date().toISOString().split('T')[0])
+  const [expCategory, setExpCategory] = useState('Labor')
+  const [expAmount, setExpAmount] = useState('')
+  const [expDesc, setExpDesc] = useState('')
 
-  // 1. Handle Authentication
+  // Inventory States
+  const [materials, setMaterials] = useState([])
+  const [matName, setMatName] = useState('')
+  const [matQty, setMatQty] = useState('')
+  const [matCost, setMatCost] = useState('')
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      if (session) fetchExpenses()
+      if (session) { fetchExpenses(); fetchMaterials() }
     })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (session) fetchExpenses()
+      if (session) { fetchExpenses(); fetchMaterials() }
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
-  // 2. Fetch Expenses
   const fetchExpenses = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('expenses')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (!error) setExpenses(data)
-    setLoading(false)
+    const { data } = await supabase.from('expenses').select('*').order('created_at', { ascending: false })
+    if (data) setExpenses(data)
   }
-
-  // 3. Add Expense
   const handleAddExpense = async (e) => {
     e.preventDefault()
-    if (!amount || !category) return alert("Please fill in amount and category")
-
-    const { error } = await supabase.from('expenses').insert([
-      { date, category, amount: parseFloat(amount), description, user_id: session.user.id }
-    ])
-
-    if (error) {
-      alert('Error adding expense: ' + error.message)
-    } else {
-      setAmount('')
-      setDescription('')
-      fetchExpenses() // Refresh list
-    }
+    await supabase.from('expenses').insert([{ date: expDate, category: expCategory, amount: parseFloat(expAmount), description: expDesc, user_id: session.user.id }])
+    setExpAmount(''); setExpDesc(''); fetchExpenses()
   }
 
-  // 4. Logout
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setExpenses([])
+  const fetchMaterials = async () => {
+    const { data } = await supabase.from('materials').select('*').order('created_at', { ascending: false })
+    if (data) setMaterials(data)
   }
+  const handleAddMaterial = async (e) => {
+    e.preventDefault()
+    await supabase.from('materials').insert([{ name: matName, stock_qty: parseFloat(matQty), cost_per_unit: parseFloat(matCost) }])
+    setMatName(''); setMatQty(''); setMatCost(''); fetchMaterials()
+  }
+
+  const handleLogout = async () => { await supabase.auth.signOut() }
 
   // --- LOGIN VIEW ---
   if (!session) {
     return (
-      <div style={{ padding: '20px', maxWidth: '400px', margin: 'auto' }}>
-        <h2>Factory Login</h2>
-        <button onClick={async () => {
-          const { error } = await supabase.auth.signInWithPassword({
-            email: prompt('Enter Email'),
-            password: prompt('Enter Password'),
-          })
-          if (error) alert(error.message)
-        }}>
-          Sign In / Sign Up (Auto-creates if new)
-        </button>
-        <p><small>Note: For this demo, try signing up with an email/password.</small></p>
+      <div className="app-container" style={{ textAlign: 'center', marginTop: '100px' }}>
+        <div className="card">
+          <h2 style={{ marginBottom: '20px' }}>Factory Portal</h2>
+          <button className="btn btn-primary" onClick={async () => {
+            const { error } = await supabase.auth.signInWithPassword({
+              email: prompt('Enter Email'), password: prompt('Enter Password'),
+            })
+            if (error) alert(error.message)
+          }}>
+            Sign In
+          </button>
+        </div>
       </div>
     )
   }
 
   // --- DASHBOARD VIEW ---
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Daily Expenses</h1>
-        <button onClick={handleLogout} style={{ background: '#ff4d4f', color: 'white', border: 'none', padding: '5px 10px' }}>Logout</button>
+    <div className="app-container">
+      <header className="app-header">
+        <h1>Factory App</h1>
+        <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
       </header>
 
-      {/* ADD FORM */}
-      <form onSubmit={handleAddExpense} style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-        <h3>Add New Expense</h3>
-        <div style={{ display: 'grid', gap: '10px' }}>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-          
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="Labor">Labor</option>
-            <option value="Electricity">Electricity</option>
-            <option value="Raw Materials">Raw Materials</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Other">Other</option>
-          </select>
-          
-          <input 
-            type="number" 
-            placeholder="Amount ($)" 
-            value={amount} 
-            onChange={(e) => setAmount(e.target.value)} 
-            step="0.01"
-            required 
-          />
-          
-          <input 
-            type="text" 
-            placeholder="Description (e.g., Weekly wages)" 
-            value={description} 
-            onChange={(e) => setDescription(e.target.value)} 
-          />
-          
-          <button type="submit" style={{ background: '#1890ff', color: 'white', padding: '10px', border: 'none', borderRadius: '4px' }}>
-            Save Expense
-          </button>
-        </div>
-      </form>
+      {/* TABS */}
+      <div className="tabs">
+        <button className={`tab-btn ${view === 'expenses' ? 'active' : ''}`} onClick={() => setView('expenses')}>
+          💸 Daily Expenses
+        </button>
+        <button className={`tab-btn ${view === 'inventory' ? 'active' : ''}`} onClick={() => setView('inventory')}>
+          📦 Inventory
+        </button>
+      </div>
 
-      {/* EXPENSE LIST */}
-      <h3>Recent History</h3>
-      {loading ? <p>Loading...</p> : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {expenses.map((exp) => (
-            <li key={exp.id} style={{ borderBottom: '1px solid #eee', padding: '10px 0', display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <strong>{exp.category}</strong>: {exp.description}
-                <br />
-                <small style={{ color: '#666' }}>{exp.date}</small>
-              </div>
-              <div style={{ fontWeight: 'bold', color: '#d9363e' }}>
-                ${parseFloat(exp.amount).toFixed(2)}
-              </div>
-            </li>
-          ))}
-        </ul>
+      {/* EXPENSES VIEW */}
+      {view === 'expenses' && (
+        <>
+          <div className="card">
+            <h3>Add New Expense</h3>
+            <form onSubmit={handleAddExpense} className="form-grid">
+              <input type="date" className="input" value={expDate} onChange={(e) => setExpDate(e.target.value)} required />
+              <select className="select" value={expCategory} onChange={(e) => setExpCategory(e.target.value)}>
+                <option>Labor</option><option>Electricity</option><option>Raw Materials</option><option>Maintenance</option><option>Other</option>
+              </select>
+              <input type="number" className="input" placeholder="Amount ($)" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} step="0.01" required />
+              <input type="text" className="input" placeholder="Description (Optional)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} />
+              <button type="submit" className="btn btn-primary">Save Expense</button>
+            </form>
+          </div>
+          
+          <div className="card">
+            <h3>Recent History</h3>
+            <ul className="list">
+              {expenses.map((exp) => (
+                <li key={exp.id} className="list-item">
+                  <div className="list-item-info">
+                    <strong>{exp.category}</strong>
+                    <small>{exp.description || 'No description'} • {exp.date}</small>
+                  </div>
+                  <div className="list-item-value text-danger">
+                    ${parseFloat(exp.amount).toFixed(2)}
+                  </div>
+                </li>
+              ))}
+              {expenses.length === 0 && <li className="empty-state">No expenses recorded yet.</li>}
+            </ul>
+          </div>
+        </>
       )}
-      
-      {expenses.length === 0 && !loading && <p>No expenses recorded yet.</p>}
+
+      {/* INVENTORY VIEW */}
+      {view === 'inventory' && (
+        <>
+          <div className="card">
+            <h3>Add Raw Material</h3>
+            <form onSubmit={handleAddMaterial} className="form-grid">
+              <input type="text" className="input" placeholder="Material Name (e.g. Steel)" value={matName} onChange={(e) => setMatName(e.target.value)} required />
+              <input type="number" className="input" placeholder="Current Stock Quantity" value={matQty} onChange={(e) => setMatQty(e.target.value)} step="0.01" required />
+              <input type="number" className="input" placeholder="Cost per Unit ($)" value={matCost} onChange={(e) => setMatCost(e.target.value)} step="0.01" required />
+              <button type="submit" className="btn btn-success">Add to Inventory</button>
+            </form>
+          </div>
+          
+          <div className="card">
+            <h3>Current Materials</h3>
+            <ul className="list">
+              {materials.map((mat) => (
+                <li key={mat.id} className="list-item">
+                  <div className="list-item-info">
+                    <strong>{mat.name}</strong>
+                    <small>Cost: ${parseFloat(mat.cost_per_unit).toFixed(2)} / unit</small>
+                  </div>
+                  <div className="list-item-value text-primary">
+                    {parseFloat(mat.stock_qty).toFixed(2)}
+                  </div>
+                </li>
+              ))}
+              {materials.length === 0 && <li className="empty-state">No materials added yet.</li>}
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   )
 }
