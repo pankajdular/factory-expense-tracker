@@ -244,3 +244,37 @@ body {
   background: var(--primary);
   color: white;
 }
+/* 11. Inventory Layout (Same as Expenses) */
+.inventory-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .inventory-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* 12. Delete Button */
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+.delete-btn:hover {
+  background: #fef2f2;
+  transform: scale(1.1);
+}
+
+.list-item-actions {
+  display: flex;
+  align-items: center;
+}

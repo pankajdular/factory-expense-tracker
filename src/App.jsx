@@ -41,6 +41,12 @@ function App() {
     await supabase.from('expenses').insert([{ date: expDate, category: expCategory, amount: parseFloat(expAmount), description: expDesc, user_id: session.user.id }])
     setExpAmount(''); setExpDesc(''); fetchExpenses()
   }
+    const handleDeleteExpense = async (id) => {
+    if (window.confirm('Are you sure you want to delete this expense? This cannot be undone.')) {
+      await supabase.from('expenses').delete().eq('id', id)
+      fetchExpenses()
+    }
+  }
 
   const fetchMaterials = async () => {
     const { data } = await supabase.from('materials').select('*').order('created_at', { ascending: false })
@@ -50,6 +56,12 @@ function App() {
     e.preventDefault()
     await supabase.from('materials').insert([{ name: matName, stock_qty: parseFloat(matQty), cost_per_unit: parseFloat(matCost) }])
     setMatName(''); setMatQty(''); setMatCost(''); fetchMaterials()
+  }
+    const handleDeleteMaterial = async (id) => {
+    if (window.confirm('Are you sure you want to delete this material? This cannot be undone.')) {
+      await supabase.from('materials').delete().eq('id', id)
+      fetchMaterials()
+    }
   }
 
   const handleLogout = async () => { await supabase.auth.signOut() }
@@ -139,14 +151,23 @@ if (errBox) {
           <div className="card">
             <h3>Recent History</h3>
             <ul className="list">
-              {(showAllExpenses ? expenses : expenses.slice(0, 10)).map((exp) => (
+              {expenses.map((exp) => (
                 <li key={exp.id} className="list-item">
                   <div className="list-item-info">
                     <strong>{exp.category}</strong>
                     <small>{exp.description || 'No description'} • {exp.date}</small>
                   </div>
-                  <div className="list-item-value text-danger">
-                    ₹{parseFloat(exp.amount).toFixed(2)}
+                  <div className="list-item-actions">
+                    <div className="list-item-value text-danger">
+                      ₹{parseFloat(exp.amount).toFixed(2)}
+                    </div>
+                    <button 
+                      className="delete-btn"
+                      onClick={() => handleDeleteExpense(exp.id)}
+                      title="Delete this expense"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </li>
               ))}
@@ -166,19 +187,21 @@ if (errBox) {
         </div>
       )}
 
-      {/* INVENTORY VIEW */}
+            {/* INVENTORY VIEW */}
       {view === 'inventory' && (
-        <>
+        <div className="inventory-layout">
+          {/* LEFT SIDE: Entry Form */}
           <div className="card">
             <h3>Add Raw Material</h3>
             <form onSubmit={handleAddMaterial} className="form-grid">
               <input type="text" className="input" placeholder="Material Name (e.g. Steel)" value={matName} onChange={(e) => setMatName(e.target.value)} required />
               <input type="number" className="input" placeholder="Current Stock Quantity" value={matQty} onChange={(e) => setMatQty(e.target.value)} step="0.01" required />
-              <input type="number" className="input" placeholder="Cost per Unit ($)" value={matCost} onChange={(e) => setMatCost(e.target.value)} step="0.01" required />
+              <input type="number" className="input" placeholder="Cost per Unit (₹)" value={matCost} onChange={(e) => setMatCost(e.target.value)} step="0.01" required />
               <button type="submit" className="btn btn-success">Add to Inventory</button>
             </form>
           </div>
           
+          {/* RIGHT SIDE: Current Materials */}
           <div className="card">
             <h3>Current Materials</h3>
             <ul className="list">
@@ -186,17 +209,26 @@ if (errBox) {
                 <li key={mat.id} className="list-item">
                   <div className="list-item-info">
                     <strong>{mat.name}</strong>
-                    <small>Cost: ${parseFloat(mat.cost_per_unit).toFixed(2)} / unit</small>
+                    <small>Cost: ₹{parseFloat(mat.cost_per_unit).toFixed(2)} / unit</small>
                   </div>
-                  <div className="list-item-value text-primary">
-                    {parseFloat(mat.stock_qty).toFixed(2)}
+                  <div className="list-item-actions">
+                    <div className="list-item-value text-primary">
+                      {parseFloat(mat.stock_qty).toFixed(2)}
+                    </div>
+                    <button 
+                      className="delete-btn"
+                      onClick={() => handleDeleteMaterial(mat.id)}
+                      title="Delete this material"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </li>
               ))}
               {materials.length === 0 && <li className="empty-state">No materials added yet.</li>}
             </ul>
           </div>
-        </>
+        </div>
       )}
     </div>
   )
